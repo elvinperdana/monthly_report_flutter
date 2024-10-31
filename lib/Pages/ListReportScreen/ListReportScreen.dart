@@ -1,16 +1,20 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:montly_report_flutter/Component/InputNumberWithThousandFormatter.dart';
-import 'package:montly_report_flutter/Pages/ListReportScreen/AddExpenseScreen.dart';
+import 'package:montly_report_flutter/Pages/ListReportScreen/AddEditReportScreen.dart';
 import 'package:montly_report_flutter/Component/ListReportScreen/CardListReport.dart';
 import 'package:montly_report_flutter/Utils/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/material.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 class ListReportScreen extends StatefulWidget {
-  ListReportScreen({Key? key}) : super(key: key);
+  ListReportScreen({super.key, this.useRouter = false});
+
+  final bool useRouter;
 
   @override
   _ListReportScreenState createState() => _ListReportScreenState();
@@ -75,7 +79,7 @@ class _ListReportScreenState extends State<ListReportScreen> {
     final firstDayOfMonth =
         DateTime(_currentYear, _currentMonth, 1).millisecondsSinceEpoch;
     final lastDayOfMonth =
-        DateTime(_currentYear, _currentMonth + 1, 0).millisecondsSinceEpoch;
+        DateTime(_currentYear, _currentMonth + 1, 0, 23, 59).millisecondsSinceEpoch;
 
     final expenseData = await _database!.query(
       'reports',
@@ -121,16 +125,19 @@ class _ListReportScreenState extends State<ListReportScreen> {
   }
 
   void _navigateToAddExpense() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddExpenseScreen(
+    pushWithoutNavBar(
+        context,
+        MaterialPageRoute(builder: (context) => AddEditReportScreen(
+          method: "Add",
           month: _currentMonth,
           year: _currentYear,
           database: _database,
-        ),
-      ),
-    ).then((_) => _getData());
+        )),
+    ).then((_) {
+      setState(() {
+        _getData(); 
+      });
+    });
   }
 
   void _changeMonthYear(int month, int year) {

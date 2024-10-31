@@ -7,22 +7,26 @@ import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 
-class AddExpenseScreen extends StatefulWidget {
+class AddEditReportScreen extends StatefulWidget {
   final int month;
   final int year;
   final Database? database;
+  final String method;
+  final Map<String, dynamic>? data;
 
-  AddExpenseScreen({
+  AddEditReportScreen({
     required this.month,
     required this.year,
     required this.database,
+    required this.method,
+    this.data,
   });
 
   @override
-  _AddExpenseScreenState createState() => _AddExpenseScreenState();
+  _AddEditReportScreenState createState() => _AddEditReportScreenState();
 }
 
-class _AddExpenseScreenState extends State<AddExpenseScreen> {
+class _AddEditReportScreenState extends State<AddEditReportScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   late DateTime _selectedDate = DateTime.now().millisecondsSinceEpoch >=
               DateTime(widget.year, widget.month, 1, 00, 00)

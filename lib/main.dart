@@ -1,4 +1,33 @@
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
+import 'package:flutter/material.dart';
+import "package:flutter/services.dart";
+import "package:montly_report_flutter/Pages/app.dart";
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // make navigation bar transparent
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+    ),
+  );
+  // make flutter draw behind navigation bar
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title: "Monthly Report",
+    home: Builder(
+      builder: (context) => App(),
+    ),
+  );
+}
+
+/*import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:montly_report_flutter/Pages/HomeScreen/HomeScreen.dart';
 import 'package:montly_report_flutter/Pages/ListReportScreen/ListReportScreen.dart';
 import 'package:flutter/material.dart';
@@ -68,13 +97,13 @@ class _MyApp extends State<MyApp> {
           break;
       }
 
-      /*_page = AnimatedSwitcher(
+      *//*_page = AnimatedSwitcher(
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         duration: Duration(milliseconds: 500),
         child: _page,
-      );*/
+      );*//*
 
     });
   }
-}
+}*/
