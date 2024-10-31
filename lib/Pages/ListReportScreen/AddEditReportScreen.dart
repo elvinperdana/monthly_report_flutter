@@ -110,68 +110,67 @@ class _AddEditReportScreenState extends State<AddEditReportScreen> {
                   decoration: const BoxDecoration(
                     color: Color(0xffdddddd),
                     borderRadius: BorderRadius.horizontal(
-                        left: Radius.circular(15),
-                        right: Radius.circular(15)),
+                        left: Radius.circular(15), right: Radius.circular(15)),
                   ),
                   child: Row(
                     children: [
                       Expanded(
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            decoration: BoxDecoration(
-                              color: _type == "Income"
-                                  ? Colors.greenAccent
-                                  : Colors.transparent,
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: _type == "Income"
+                              ? Colors.greenAccent
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.all(16.0),
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             ),
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.all(16.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                ),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _type = "Income";
-                                });
-                              },
-                              child: const Text(
-                                "Income",
-                                style: TextStyle(color: Colors.black87),
-                              ),
-                            ),
-                          )),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _type = "Income";
+                            });
+                          },
+                          child: const Text(
+                            "Income",
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                        ),
+                      )),
                       Expanded(
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            decoration: BoxDecoration(
-                              color: _type == "Expense"
-                                  ? Colors.redAccent
-                                  : Colors.transparent,
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: _type == "Expense"
+                              ? Colors.redAccent
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.all(16.0),
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             ),
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.all(16.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                ),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _type = "Expense";
-                                });
-                              },
-                              child: Text(
-                                "Expense",
-                                style: TextStyle(
-                                    color: _type == "Expense"
-                                        ? Colors.white
-                                        : Colors.black87),
-                              ),
-                            ),
-                          )),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _type = "Expense";
+                            });
+                          },
+                          child: Text(
+                            "Expense",
+                            style: TextStyle(
+                                color: _type == "Expense"
+                                    ? Colors.white
+                                    : Colors.black87),
+                          ),
+                        ),
+                      )),
                     ],
                   ),
                 ),
@@ -190,8 +189,7 @@ class _AddEditReportScreenState extends State<AddEditReportScreen> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _descriptionController,
-                  decoration:
-                  const InputDecoration(labelText: 'Description'),
+                  decoration: const InputDecoration(labelText: 'Description'),
                   validator: (value) {
                     return null;
                   },
@@ -200,8 +198,7 @@ class _AddEditReportScreenState extends State<AddEditReportScreen> {
                 TextFormField(
                   focusNode: AlwaysDisabledFocusNode(),
                   controller: _dateTimeController,
-                  decoration:
-                  const InputDecoration(labelText: 'Date & Time'),
+                  decoration: const InputDecoration(labelText: 'Date & Time'),
                   onTap: () {
                     _selectDate(context);
                   },

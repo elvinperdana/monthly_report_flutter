@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
 import "package:montly_report_flutter/Pages/HomeScreen/HomeScreen.dart";
 import "package:montly_report_flutter/Pages/ListReportScreen/ListReportScreen.dart";
+import "package:montly_report_flutter/Provider/database-provider.dart";
 import "package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart";
+import "package:provider/provider.dart";
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -12,6 +14,13 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final PersistentTabController _controller = PersistentTabController();
+
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<DatabaseProvider>(context, listen: false).initializeDatabase();
+    Provider.of<DatabaseProvider>(context, listen: false).updateReport();
+  }
 
   List<PersistentTabConfig> _tabs() => [
     PersistentTabConfig(
@@ -58,9 +67,9 @@ class _AppState extends State<App> {
     tabs: _tabs(),
     navBarBuilder: (navBarConfig) => Style11BottomNavBar(
       navBarConfig: navBarConfig,
-      navBarDecoration: NavBarDecoration(
+      navBarDecoration: const NavBarDecoration(
         color: Colors.black,
-        borderRadius: BorderRadius.circular(10),
+        // borderRadius: BorderRadius.circular(25),
       ),
       itemAnimationProperties: const ItemAnimation(),
     ),

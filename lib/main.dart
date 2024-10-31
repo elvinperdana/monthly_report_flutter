@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import "package:flutter/services.dart";
 import "package:montly_report_flutter/Pages/app.dart";
+import "package:montly_report_flutter/Provider/database-provider.dart";
+import "package:montly_report_flutter/Provider/date-provider.dart";
+import "package:provider/provider.dart";
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +15,17 @@ void main() {
   );
   // make flutter draw behind navigation bar
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  runApp(const MyApp());
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => DateProvider()),
+      ChangeNotifierProxyProvider<DateProvider, DatabaseProvider>(
+        create: (context) => DatabaseProvider(context.read<DateProvider>()),
+        update: (context, dateProvider, databaseProvider) =>
+            DatabaseProvider(dateProvider),
+      ),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -20,11 +33,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: "Monthly Report",
-    home: Builder(
-      builder: (context) => App(),
-    ),
-  );
+        title: "Monthly Report",
+        home: Builder(
+          builder: (context) {
+            return const App();
+          },
+        ),
+      );
 }
 
 /*import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -97,12 +112,12 @@ class _MyApp extends State<MyApp> {
           break;
       }
 
-      *//*_page = AnimatedSwitcher(
+      */ /*_page = AnimatedSwitcher(
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         duration: Duration(milliseconds: 500),
         child: _page,
-      );*//*
+      );*/ /*
 
     });
   }

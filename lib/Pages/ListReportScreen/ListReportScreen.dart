@@ -1,15 +1,13 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:montly_report_flutter/Component/InputNumberWithThousandFormatter.dart';
 import 'package:montly_report_flutter/Pages/ListReportScreen/AddEditReportScreen.dart';
 import 'package:montly_report_flutter/Component/ListReportScreen/CardListReport.dart';
-import 'package:montly_report_flutter/Utils/utils.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
+import 'package:montly_report_flutter/Provider/database-provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/material.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 class ListReportScreen extends StatefulWidget {
   ListReportScreen({super.key, this.useRouter = false});
@@ -22,10 +20,6 @@ class ListReportScreen extends StatefulWidget {
 
 class _ListReportScreenState extends State<ListReportScreen> {
   Database? _database;
-  int _totalIncome = 0;
-  int _totalExpense = 0;
-  int _remaining = 0;
-  List _reports = [];
   int _currentMonth = DateTime.now().month;
   int _currentYear = DateTime.now().year;
   final List<String> typeOption = [
@@ -48,47 +42,15 @@ class _ListReportScreenState extends State<ListReportScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeDatabase();
+    Provider.of<DatabaseProvider>(context, listen: false).initializeDatabase();
+    Provider.of<DatabaseProvider>(context, listen: false).updateReport();
     _typeFilterSelected = typeOption.first;
   }
 
-  Future<void> _initializeDatabase() async {
-    // Delete existing database (for development purposes only)
-    final databasePath = p.join(await getDatabasesPath(), 'monthly_report.db');
-    final file = File(databasePath);
-    if (await file.exists()) {
-      await file.delete(); // Delete the old database
-    }
-
-    _database = await openDatabase(
-      databasePath,
-      onCreate: (db, version) {
-        db.execute(
-          'CREATE TABLE reports(id INTEGER PRIMARY KEY, amount INTEGER, description TEXT, dateTime INTEGER, type TEXT)',
-        );
-        db.execute(
-          'CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT UNIQUE)',
-        );
-      },
-      version: 1,
-    );
-    _getData();
-  }
-
   Future<void> _getData() async {
-    final firstDayOfMonth =
-        DateTime(_currentYear, _currentMonth, 1).millisecondsSinceEpoch;
-    final lastDayOfMonth =
-        DateTime(_currentYear, _currentMonth + 1, 0, 23, 59).millisecondsSinceEpoch;
+    final expenseData =   ;
 
-    final expenseData = await _database!.query(
-      'reports',
-      where: "dateTime BETWEEN ? AND ?",
-      whereArgs: [firstDayOfMonth, lastDayOfMonth],
-      orderBy: "dateTime DESC",
-    );
-
-    List groupTemp = [];
+    /*List groupTemp = [];
     int getTotalIncome = 0;
     int getTotalExpense = 0;
 
@@ -114,28 +76,29 @@ class _ListReportScreenState extends State<ListReportScreen> {
           });
         }
       }
-    }
+    }*/
 
     setState(() {
-      _totalExpense = getTotalExpense;
+/*      _totalExpense = getTotalExpense;
       _totalIncome = getTotalIncome;
-      _remaining = getTotalIncome != 0 ? getTotalIncome - getTotalExpense : 0;
-      _reports = groupTemp;
+      _remaining = getTotalIncome != 0 ? getTotalIncome - getTotalExpense : 0;*/
+      _reports = expenseData;
     });
   }
 
   void _navigateToAddExpense() {
     pushWithoutNavBar(
-        context,
-        MaterialPageRoute(builder: (context) => AddEditReportScreen(
-          method: "Add",
-          month: _currentMonth,
-          year: _currentYear,
-          database: _database,
-        )),
+      context,
+      MaterialPageRoute(
+          builder: (context) => AddEditReportScreen(
+                method: "Add",
+                month: _currentMonth,
+                year: _currentYear,
+                database: _database,
+              )),
     ).then((_) {
       setState(() {
-        _getData(); 
+        _getData();
       });
     });
   }
@@ -150,9 +113,9 @@ class _ListReportScreenState extends State<ListReportScreen> {
 
   List _getDataList() {
     if (_typeFilterSelected == 'All') {
-      return _reports;
+      return Provider.of<DatabaseProvider>(context).reports;
     } else {
-      return _reports
+      return Provider.of<DatabaseProvider>(context).reports
           .map((data) {
             final filterDataExpense = data['dataExpenses']
                 .where((docDataExpense) =>
@@ -179,7 +142,8 @@ class _ListReportScreenState extends State<ListReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      backgroundColor: Colors.white,
+/*      appBar: AppBar(
         title: Text(_getMonthYearText()),
         actions: [
           IconButton(
@@ -245,184 +209,139 @@ class _ListReportScreenState extends State<ListReportScreen> {
             },
           ),
         ],
-      ),
-      body: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5.0, left: 15.0, right: 15.0),
-            child: Column(
-              children: [
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 8.0,
-                  runSpacing: 8.0,
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 15),
-                        decoration: const BoxDecoration(
-                          color: Colors.greenAccent,
-                          borderRadius: BorderRadius.horizontal(
-                              left: Radius.circular(8.0),
-                              right: Radius.circular(8.0)),
-                        ),
-                        child: Text('(+) : Rp ${thousandFormatter(_totalIncome)}',
-                            style: const TextStyle(
-                                color: Colors.black, fontWeight: FontWeight.bold))),
-                    Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 15),
-                        decoration: const BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius: BorderRadius.horizontal(
-                              left: Radius.circular(8.0),
-                              right: Radius.circular(8.0)),
-                        ),
-                        child: Text('(-) : Rp ${thousandFormatter(_totalExpense)}',
-                            style: const TextStyle(
-                                color: Colors.white, fontWeight: FontWeight.bold))),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 5, horizontal: 15),
-                    decoration: const BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.horizontal(
-                          left: Radius.circular(8.0),
-                          right: Radius.circular(8.0)),
-                    ),
-                    child: Text('(Σ) : Rp ${thousandFormatter(_remaining)}',
-                        style: const TextStyle(
-                            color: Colors.black, fontWeight: FontWeight.bold))),
-              ],
-            ),
-          ),
-          const Divider(),
-          SizedBox(
-            height: 46,
-            child: Padding(
-                padding: const EdgeInsets.only(right: 15, left: 15, bottom: 7),
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: typeOption.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: EdgeInsets.only(
-                              right: index != typeOption.length - 1 ? 3 : 0),
-                          child: ChoiceChip(
-                            label: Text(typeOption[index]),
-                            selected: _typeFilterSelected == typeOption[index],
-                            onSelected: (bool selected) {
-                              setState(() {
-                                _typeFilterSelected = selected
-                                    ? typeOption[index]
-                                    : _typeFilterSelected;
-                              });
-                            },
-                            selectedColor: Colors.blueAccent,
-                            backgroundColor: Colors.grey[200],
-                            labelStyle: TextStyle(
-                              color: _typeFilterSelected == typeOption[index]
-                                  ? Colors.white
-                                  : Colors.black,
+      ),*/
+      body: SafeArea(
+          top: true,
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 46,
+                child: Padding(
+                    padding:
+                        const EdgeInsets.only(right: 15, left: 15, bottom: 7),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: typeOption.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                  right:
+                                      index != typeOption.length - 1 ? 3 : 0),
+                              child: ChoiceChip(
+                                label: Text(typeOption[index]),
+                                selected:
+                                    _typeFilterSelected == typeOption[index],
+                                onSelected: (bool selected) {
+                                  setState(() {
+                                    _typeFilterSelected = selected
+                                        ? typeOption[index]
+                                        : _typeFilterSelected;
+                                  });
+                                },
+                                selectedColor: Colors.blueAccent,
+                                backgroundColor: Colors.grey[200],
+                                labelStyle: TextStyle(
+                                  color:
+                                      _typeFilterSelected == typeOption[index]
+                                          ? Colors.white
+                                          : Colors.black,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      50), // Custom border radius
+                                ),
+                              ),
+                            );
+                          },
+                        )),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: ElevatedButton(
+                            onPressed: _navigateToAddExpense,
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor: const Color(0xff252525),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  50), // Custom border radius
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
                             ),
                           ),
-                        );
-                      },
+                        )
+                      ],
                     )),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: ElevatedButton(
-                        onPressed: _navigateToAddExpense,
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _getDataList().length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.only(
+                          left: 10.0, right: 10.0, bottom: 10.0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 5.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(width: 1.0, color: Colors.grey),
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(15.0),
+                          right: Radius.circular(15.0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.4),
+                            spreadRadius: 0.1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
                           ),
-                          backgroundColor: const Color(0xff252525),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                        ),
+                        ],
                       ),
-                    )
-                  ],
-                )),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _getDataList().length,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.only(
-                      left: 10.0, right: 10.0, bottom: 10.0),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 5.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(width: 1.0, color: Colors.grey),
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(15.0),
-                      right: Radius.circular(15.0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.4),
-                        spreadRadius: 0.1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 7.0, horizontal: 15.0),
-                        margin:
-                            const EdgeInsets.only(left: 5, right: 5, bottom: 7),
-                        decoration: const BoxDecoration(
-                          color: Color(0xff2c2c2c),
-                          borderRadius: BorderRadius.horizontal(
-                            left: Radius.circular(50.0),
-                            right: Radius.circular(50.0),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 7.0, horizontal: 15.0),
+                            margin: const EdgeInsets.only(
+                                left: 5, right: 5, bottom: 7),
+                            decoration: const BoxDecoration(
+                              color: Color(0xff2c2c2c),
+                              borderRadius: BorderRadius.horizontal(
+                                left: Radius.circular(50.0),
+                                right: Radius.circular(50.0),
+                              ),
+                            ),
+                            child: Text(
+                              "${_getDataList()[index]['day']}",
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          "${_getDataList()[index]['day']}",
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                          // Other items in _getDataList
+                          ..._getDataList()[index]['dataExpenses']
+                              .asMap()
+                              .entries
+                              .map<Widget>((entry) {
+                            int indexExpense = entry.key;
+                            var dataExpense = entry.value;
+                            return CardReportList(
+                              indexExpense: indexExpense,
+                              dataExpense: dataExpense,
+                            );
+                          }).toList(),
+                        ],
                       ),
-                      // Other items in _getDataList
-                      ..._getDataList()[index]['dataExpenses']
-                          .asMap()
-                          .entries
-                          .map<Widget>((entry) {
-                        int indexExpense = entry.key;
-                        var dataExpense = entry.value;
-                        return CardReportList(
-                          indexExpense: indexExpense,
-                          dataExpense: dataExpense,
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          )),
     );
   }
 }
